@@ -1,6 +1,8 @@
 import json
 from django.http import JsonResponse
 from django.templatetags.static import static
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
 
 from .models import Product, Order, OrderItem
@@ -58,28 +60,23 @@ def product_list_api(request):
     })
 
 
+@api_view(['POST'])
 def register_order(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body.decode())
+    data = request.data
 
-            order = Order.objects.create(
-                first_name=data['firstname'],
-                last_name=data['lastname'],
-                phonenumber=data['phonenumber'],
-                address=data['address'],
-            )
+    order = Order.objects.create(
+        first_name=data['firstname'],
+        last_name=data['lastname'],
+        phonenumber=data['phonenumber'],
+        address=data['address'],
+    )
 
-            for item in data['products']:
-                product = Product.objects.get(id=item['product'])
-                OrderItem.objects.create(
-                    order=order,
-                    product=product,
-                    quantity=item['quantity'],
-                )
-            return JsonResponse({'status': 'success'})
+    for item in data['products']:
+        product = Product.objects.get(id=item['product'])
+        OrderItem.objects.create(
+            order=order,
+            product=product,
+            quantity=item['quantity'],
+        )
 
-        except ValueError:
-            return JsonResponse({'status': 'fail'}, status=400)
-
-    return JsonResponse({'status': 'fail'}, status=405)
+    return Response({'status': 'success'})
