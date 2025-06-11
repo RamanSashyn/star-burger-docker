@@ -4,6 +4,9 @@ from django.templatetags.static import static
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
+from phonenumber_field.phonenumber import to_python
+from phonenumber_field.validators import validate_international_phonenumber
+from django.core.exceptions import ValidationError
 
 
 from .models import Product, Order, OrderItem
@@ -64,11 +67,23 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
     order_data = request.data
+    products = order_data['products']
+    required_fields = ['firstname', 'lastname', 'phonenumber', 'address']
+
+    for field in required_fields:
+        if field not in order_data:
+            return Response({field: 'Обязательное поле.'}, status=status.HTTP_400_BAD_REQUEST)
+        if order_data[field] is None or not isinstance(order_data[field], str) or not order_data[field].strip():
+            return Response({field: 'Это поле не может быть пустым.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        phone = to_python(order_data['phonenumber'])
+        validate_international_phonenumber(phone)
+    except ValidationError:
+        return Response({'phonenumber': 'Введен некорректный номер телефона.'}, status=status.HTTP_400_BAD_REQUEST)
 
     if 'products' not in order_data:
         return Response({'products': ['Обязательное поле.']}, status=status.HTTP_400_BAD_REQUEST)
-
-    products = order_data['products']
 
     if products is None:
         return Response({'products': 'Это поле не может быть пустым.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -79,6 +94,23 @@ def register_order(request):
 
     if not products:
         return Response({'products': 'Этот список не может быть пустым.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    for i, product_data in enumerate(products):
+        if not isinstance(product_data, dict):
+            return Response({f'products[{i}]':'Ожидался объект с ключами product и quantity.'},
+                            status=status.HTTP_400_BAD_REQUEST )
+
+        if 'product' not in product_data or not isinstance(product_data['product'], int):
+            return Response({f'products[{i}].product': 'Ожидался корректный ID продукта (int).'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if 'quantity' not in product_data or not isinstance(product_data['quantity'], int) or product_data['quantity'] <= 0:
+            return Response({f'products[{i}].quantity': 'Количество должно быть положительным числом.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if not Product.objects.filter(id=product_data['product']).exists():
+            return Response({f'products[{i}].product': f'Недопустимый первичный ключ "{product_data["product"]}"'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
     order = Order.objects.create(
