@@ -1,8 +1,8 @@
 from django.db import models
-from django.db.models import Sum, DecimalField
+from django.db.models import Sum, DecimalField, F
 from django.core.validators import MinValueValidator
-from django.db.models import F
 from phonenumber_field.modelfields import PhoneNumberField
+from decimal import Decimal
 
 
 class Restaurant(models.Model):
@@ -168,6 +168,12 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, related_name='order_items', on_delete=models.CASCADE, verbose_name='товар')
     quantity = models.PositiveIntegerField('количество')
+    price = models.DecimalField(
+        'цена',
+        max_digits=8,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))],
+    )
 
     def __str__(self):
         return f'{self.quantity} x {self.product.name} (заказ {self.order.id})'

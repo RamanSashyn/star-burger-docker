@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
-
+from django.db.models import Sum, F
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
@@ -103,7 +103,9 @@ def view_orders(request):
     for order in orders:
         order_items.append({
             'id': order.id,
-            'total_price': order.total_price,
+            'total_price': order.items.aggregate(
+                total=Sum(F('price') * F('quantity'))
+            )['total'],
             'client': f'{order.first_name} {order.last_name}',
             'phonenumber': order.phonenumber,
             'address': order.address,
