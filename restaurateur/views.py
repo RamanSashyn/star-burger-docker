@@ -94,6 +94,7 @@ def view_restaurants(request):
 def view_orders(request):
     orders = (
         Order.objects
+        .with_total_price()
         .prefetch_related('items__product')
         .order_by('-id')
     )
@@ -102,6 +103,7 @@ def view_orders(request):
     for order in orders:
         order_items.append({
             'id': order.id,
+            'total_price': order.total_price,
             'client': f'{order.first_name} {order.last_name}',
             'phonenumber': order.phonenumber,
             'address': order.address,
