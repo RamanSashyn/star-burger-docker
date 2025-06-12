@@ -1,5 +1,7 @@
 from django.db import models
+from django.db.models import Sum, DecimalField
 from django.core.validators import MinValueValidator
+from django.db.models import F
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -124,6 +126,16 @@ class RestaurantMenuItem(models.Model):
         return f"{self.restaurant.name} - {self.product.name}"
 
 
+class OrderQuerySet(models.QuerySet):
+    def with_total_price(self):
+        return self.annotate(
+            total_price=Sum(
+                F('items__quantity') * F('items__product__price'),
+                output_field=DecimalField()
+            )
+        )
+
+
 class Order(models.Model):
     first_name = models.CharField(
         'имя',
@@ -141,6 +153,8 @@ class Order(models.Model):
         'адрес',
         max_length=100
     )
+
+    objects = OrderQuerySet.as_manager()
 
     def __str__(self):
         return f'Заказ №{self.id} от {self.first_name} {self.last_name}'
