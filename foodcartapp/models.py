@@ -137,6 +137,28 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(models.Model):
+    NEW = 'new'
+    CONFIRMED = 'confirmed'
+    COOKING = 'cooking'
+    DELIVERING = 'delivering'
+    DONE = 'done'
+
+    STATUS_CHOICES = [
+        (NEW, 'Новый'),
+        (CONFIRMED, 'Подтверждён'),
+        (COOKING, 'Готовится'),
+        (DELIVERING, 'Доставляется'),
+        (DONE, 'Выполнен'),
+    ]
+
+    status = models.CharField(
+        verbose_name='статус',
+        choices=STATUS_CHOICES,
+        default=NEW,
+        max_length=20,
+        db_index=True,
+    )
+
     first_name = models.CharField(
         'имя',
         max_length=20
