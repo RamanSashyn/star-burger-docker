@@ -2,6 +2,10 @@ from django.contrib import admin
 from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.shortcuts import redirect
+from urllib.parse import unquote
+from django.conf import settings
 
 from .models import Product
 from .models import ProductCategory
@@ -119,3 +123,15 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'first_name', 'last_name', 'phonenumber', 'address']
     search_fields = ['first_name', 'last_name', 'phonenumber']
     inlines = [OrderItemInline]
+
+    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['next'] = request.GET.get('next')
+        return super().changeform_view(request, object_id, form_url, extra_context)
+
+
+    def response_change(self, request, obj):
+        next_url = request.GET.get('next')
+        if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+            return redirect(unquote(next_url))
+        return super().response_change(request, obj)
