@@ -175,6 +175,10 @@ class Order(models.Model):
         'адрес',
         max_length=100
     )
+    comment = models.TextField(
+        'комментарий',
+        blank=True,
+    )
 
     objects = OrderQuerySet.as_manager()
 
