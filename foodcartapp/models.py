@@ -143,6 +143,8 @@ class Order(models.Model):
     COOKING = 'cooking'
     DELIVERING = 'delivering'
     DONE = 'done'
+    CASH = 'cash'
+    ELECTRONIC = 'electronic'
 
     STATUS_CHOICES = [
         (NEW, 'Новый'),
@@ -150,6 +152,11 @@ class Order(models.Model):
         (COOKING, 'Готовится'),
         (DELIVERING, 'Доставляется'),
         (DONE, 'Выполнен'),
+    ]
+
+    PAYMENT_CHOICES = [
+        (CASH, 'Наличностью'),
+        (ELECTRONIC, 'Электронно'),
     ]
 
     first_name = models.CharField(
@@ -174,6 +181,21 @@ class Order(models.Model):
         default=NEW,
         max_length=20,
         db_index=True,
+    )
+    payment_method = models.CharField(
+        'способ оплаты',
+        choices=PAYMENT_CHOICES,
+        max_length=20,
+        default=CASH,
+        db_index=True,
+    )
+    cooking_restaurant = models.ForeignKey(
+        Restaurant,
+        verbose_name='ресторан для приготовления',
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='orders',
     )
     comment = models.TextField(
         'комментарий',

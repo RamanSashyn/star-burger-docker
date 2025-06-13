@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
 
-from foodcartapp.models import Product, Restaurant, Order, OrderItem
+from foodcartapp.models import Product, Restaurant, Order, OrderItem, RestaurantMenuItem
 
 
 class Login(forms.Form):
@@ -92,18 +92,49 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
+    menu_items = RestaurantMenuItem.objects.select_related('restaurant', 'product').filter(availability=True)
+
     orders = (
         Order.objects
         .with_total_price()
         .exclude(status=Order.DONE)
+        .prefetch_related('items__product')
+        .select_related('cooking_restaurant')
         .order_by('-id')
     )
 
     order_items = []
     for order in orders:
+        order_products = [item.product for item in order.items.all()]
+        restaurants_with_product = {}
+
+        for item in menu_items:
+            if item.product in order_products:
+                restaurants_with_product.setdefault(item.product, set()).add(item.restaurant)
+
+        if restaurants_with_product:
+            possible_restaurants = set.intersection(*restaurants_with_product.values())
+        else:
+            possible_restaurants = set()
+
+        if order.cooking_restaurant:
+            restaurant_text = f'Готовит {order.cooking_restaurant.name}'
+            if order.status == Order.CONFIRMED:
+                order.status = Order.COOKING
+        elif possible_restaurants:
+            restaurant_text = f'''
+                <details>
+                    <summary>Может быть приготовлен ресторанами</summary>
+                    <ul>{"".join(f"<li>{r.name}</li>" for r in possible_restaurants)}</ul>
+                </details>
+            '''
+        else:
+            restaurant_text = 'Ошибка определения координат'
+
         order_items.append({
             'id': order.id,
             'status': order.get_status_display(),
+            'payment_method': order.get_payment_method_display(),
             'total_price': order.items.aggregate(
                 total=Sum(F('price') * F('quantity'))
             )['total'],
@@ -111,6 +142,7 @@ def view_orders(request):
             'phonenumber': order.phonenumber,
             'address': order.address,
             'comment': order.comment,
+            'restaurants': restaurant_text,
         })
     return render(request, template_name='order_items.html', context={
         'order_items': order_items,
