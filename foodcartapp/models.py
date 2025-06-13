@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Sum, DecimalField, F
 from django.core.validators import MinValueValidator
+from django.utils.timezone import now
 from phonenumber_field.modelfields import PhoneNumberField
 from decimal import Decimal
 
@@ -151,14 +152,6 @@ class Order(models.Model):
         (DONE, 'Выполнен'),
     ]
 
-    status = models.CharField(
-        verbose_name='статус',
-        choices=STATUS_CHOICES,
-        default=NEW,
-        max_length=20,
-        db_index=True,
-    )
-
     first_name = models.CharField(
         'имя',
         max_length=20
@@ -175,9 +168,33 @@ class Order(models.Model):
         'адрес',
         max_length=100
     )
+    status = models.CharField(
+        verbose_name='статус',
+        choices=STATUS_CHOICES,
+        default=NEW,
+        max_length=20,
+        db_index=True,
+    )
     comment = models.TextField(
         'комментарий',
         blank=True,
+    )
+    created_at = models.DateTimeField(
+        'время оформления',
+        auto_now_add=True,
+        db_index=True,
+    )
+    called_at = models.DateTimeField(
+        'время звонка клиенту',
+        null=True,
+        blank=True,
+        db_index=True,
+    )
+    delivered_at = models.DateTimeField(
+        'время доставки',
+        null=True,
+        blank=True,
+        db_index=True,
     )
 
     objects = OrderQuerySet.as_manager()
