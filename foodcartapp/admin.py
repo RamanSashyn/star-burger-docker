@@ -123,6 +123,7 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'first_name', 'last_name', 'phonenumber', 'address']
     list_field = ['status']
     search_fields = ['first_name', 'last_name', 'phonenumber']
+    fields = ['first_name', 'last_name', 'phonenumber', 'address', 'status', 'comment']
     inlines = [OrderItemInline]
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
