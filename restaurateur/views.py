@@ -110,6 +110,7 @@ def view_orders(request):
             'client': f'{order.first_name} {order.last_name}',
             'phonenumber': order.phonenumber,
             'address': order.address,
+            'comment': order.comment,
         })
     return render(request, template_name='order_items.html', context={
         'order_items': order_items,
