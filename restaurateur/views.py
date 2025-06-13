@@ -95,7 +95,7 @@ def view_orders(request):
     orders = (
         Order.objects
         .with_total_price()
-        .prefetch_related('items__product')
+        .exclude(status=Order.DONE)
         .order_by('-id')
     )
 
@@ -103,6 +103,7 @@ def view_orders(request):
     for order in orders:
         order_items.append({
             'id': order.id,
+            'status': order.get_status_display(),
             'total_price': order.items.aggregate(
                 total=Sum(F('price') * F('quantity'))
             )['total'],
