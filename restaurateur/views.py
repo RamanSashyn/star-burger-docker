@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
 
+from foodcartapp.utils import fetch_coordinates, get_distance_km
 from foodcartapp.models import Product, Restaurant, Order, OrderItem, RestaurantMenuItem
 
 
@@ -103,47 +104,63 @@ def view_orders(request):
         .order_by('-id')
     )
 
+    restaurant_coords = {}
+    for item in menu_items:
+        restaurant = item.restaurant
+        if restaurant.address not in restaurant_coords:
+            coords = fetch_coordinates(restaurant.address)
+            if coords:
+                restaurant_coords[restaurant.address] = coords
+
     order_items = []
     for order in orders:
+        order_coords = fetch_coordinates(order.address)
         order_products = [item.product for item in order.items.all()]
-        restaurants_with_product = {}
 
+        product_restaurants = {}
         for item in menu_items:
             if item.product in order_products:
-                restaurants_with_product.setdefault(item.product, set()).add(item.restaurant)
+                product_restaurants.setdefault(item.product, set()).add(item.restaurant)
 
-        if restaurants_with_product:
-            possible_restaurants = set.intersection(*restaurants_with_product.values())
+        if product_restaurants:
+            possible_restaurants = set.intersection(*product_restaurants.values())
         else:
             possible_restaurants = set()
 
+        restaurant_distances = []
+        if order_coords:
+            for restaurant in possible_restaurants:
+                coords = restaurant_coords.get(restaurant.address)
+                if coords:
+                    distance = get_distance_km(order_coords, coords)
+                    restaurant_distances.append((restaurant, distance))
+            restaurant_distances.sort(key=lambda x: x[1])
+
         if order.cooking_restaurant:
             restaurant_text = f'Готовит {order.cooking_restaurant.name}'
-            if order.status == Order.CONFIRMED:
-                order.status = Order.COOKING
-        elif possible_restaurants:
-            restaurant_text = f'''
-                <details>
-                    <summary>Может быть приготовлен ресторанами</summary>
-                    <ul>{"".join(f"<li>{r.name}</li>" for r in possible_restaurants)}</ul>
-                </details>
-            '''
-        else:
+        elif order_coords and restaurant_distances:
+            restaurant_text = (
+                '<details><summary>Может быть приготовлен ресторанами</summary><ul>' +
+                ''.join([f'<li>{r.name} — {d} км</li>' for r, d in restaurant_distances]) +
+                '</ul></details>'
+            )
+        elif not order_coords:
             restaurant_text = 'Ошибка определения координат'
+        else:
+            restaurant_text = 'Нет ресторанов для приготовления'
 
         order_items.append({
             'id': order.id,
             'status': order.get_status_display(),
             'payment_method': order.get_payment_method_display(),
-            'total_price': order.items.aggregate(
-                total=Sum(F('price') * F('quantity'))
-            )['total'],
+            'total_price': order.total_price,
             'client': f'{order.first_name} {order.last_name}',
             'phonenumber': order.phonenumber,
             'address': order.address,
             'comment': order.comment,
             'restaurants': restaurant_text,
         })
+
     return render(request, template_name='order_items.html', context={
         'order_items': order_items,
     })
