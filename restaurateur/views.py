@@ -10,6 +10,7 @@ from django.contrib.auth import views as auth_views
 
 from foodcartapp.utils import fetch_coordinates, get_distance_km
 from foodcartapp.models import Product, Restaurant, Order, OrderItem, RestaurantMenuItem
+from places.models import Place
 
 
 class Login(forms.Form):
@@ -114,7 +115,12 @@ def view_orders(request):
 
     order_items = []
     for order in orders:
-        order_coords = fetch_coordinates(order.address)
+        order_place = Place.objects.filter(address=order.address).first()
+        if order_place and order_place.latitude and order_place.longitude:
+            order_coords = (order_place.latitude, order_place.longitude)
+        else:
+            order_coords = None
+
         order_products = [item.product for item in order.items.all()]
 
         product_restaurants = {}
