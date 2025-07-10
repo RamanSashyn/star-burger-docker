@@ -68,6 +68,12 @@ SECRET_KEY=django-insecure-0if40nf4nf93n4
 ```env
 YANDEX_GEOCODER_API_KEY=ваш_ключ_от_яндекса
 ```
+### Rollbar
+Создайте токен на сайте https://app.rollbar.com/
+```env
+ROLLBAR_TOKEN=ваш_токен
+ROLLBAR_ENVIRONMENT=development
+```
 ### Где получить ключ
 1. Перейдите на страницу сервиса: https://developer.tech.yandex.ru/services/
 
