@@ -34,7 +34,7 @@ INSTALLED_APPS = [
 ]
 
 ROLLBAR = {
-    'access_token': os.getenv('ROLLBAR_TOKEN'),
+    'access_token': os.getenv('ROLLBAR_TOKEN', ''),
     'environment': os.getenv('ROLLBAR_ENVIRONMENT', 'development'),
     'root': BASE_DIR,
 }
