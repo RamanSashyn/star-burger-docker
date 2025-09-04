@@ -14,9 +14,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
 SECRET_KEY = env.str('SECRET_KEY', default='dev-secret-key')
-DEBUG = env.bool('DEBUG', True)
-
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
+DEBUG = os.getenv('DJANGO_DEBUG', '1') == '1'
+ALLOWED_HOSTS = [h.strip() for h in os.getenv('DJANGO_ALLOWED_HOSTS','localhost,127.0.0.1').split(',') if h.strip()]
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS','').split(',') if o.strip()]
 
 INSTALLED_APPS = [
     'foodcartapp.apps.FoodcartappConfig',

@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    env_file: .env
+    environment:
+      STATIC_ROOT: /app/staticfiles
+      MEDIA_ROOT: /app/media
+    volumes:
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    volumes:
+      - ./staticfiles:/static:ro
+      - ./media:/media:ro
+    restart: unless-stopped
