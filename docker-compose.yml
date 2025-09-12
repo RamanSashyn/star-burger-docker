@@ -1,21 +1,4 @@
-version: "3.9"
-
 services:
-  db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: starburger
-      POSTGRES_USER: staruser
-      POSTGRES_PASSWORD: vfperfectp18121
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U staruser -d starburger"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    restart: unless-stopped
-
   backend:
     build:
       context: .
@@ -24,13 +7,12 @@ services:
     environment:
       STATIC_ROOT: /app/staticfiles
       MEDIA_ROOT: /app/media
-      DATABASE_URL: ${DATABASE_URL}
     volumes:
       - ./media:/app/media
       - ./staticfiles:/app/staticfiles
-    depends_on:
-      db:
-        condition: service_healthy
+      - ./db.sqlite3:/app/db.sqlite3
+    ports:
+      - "127.0.0.1:8001:8000"
     restart: unless-stopped
 
   frontend:
@@ -40,11 +22,8 @@ services:
     depends_on:
       - backend
     ports:
-      - "80:80"
+      - "127.0.0.1:8000:80"
     volumes:
       - ./staticfiles:/static:ro
       - ./media:/media:ro
     restart: unless-stopped
-
-volumes:
-  pgdata:

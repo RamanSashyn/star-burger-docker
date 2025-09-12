@@ -175,33 +175,50 @@ Parcel будет следить за файлами в каталоге `bundle
 
 Настроить бэкенд: создать файл `.env` в каталоге `star_burger/` со следующими настройками:
 
-- `DEBUG` — дебаг-режим. Поставьте `False`.
-- `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
-- `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
+DEBUG=False
+SECRET_KEY=django-insecure-change-me
+ALLOWED_HOSTS=example.ru,www.example.ru,104.248.41.115,localhost,127.0.0.1
+CSRF_TRUSTED_ORIGINS=http://example.ru,https://example.ru,https://www.example.ru
+DATABASE_URL=sqlite:////app/db.sqlite3 или данные из Postgres
+YANDEX_GEOCODER_API_KEY=...
+ROLLBAR_TOKEN=...
+ROLLBAR_ENVIRONMENT=production
 
-## Что проверить перед деплоем
-1. Убедитесь, что в среде есть необходимые dev-библиотеки:
+## Деплой на сервер
+1. Установить nginx, docker на сервер:
 ```bash
 sudo apt update
-sudo apt install libpq-dev python3-dev build-essential
+sudo apt install -y nginx git docker.io docker-compose-plugin
+sudo mkdir -p /opt/star-burger
+cd /opt/star-burger
+git clone <URL_ВАШЕГО_РЕПО> .
 ```
-
-## 🔁 Обновление проекта на сервере
+2. Создать env:
 ```bash
-ssh root@your-server-ip
-./deploy_star_burger.sh
+nano .env
 ```
-Скрипт:
-
-- подтянет последние изменения
-
-- обновит зависимости
-
-- соберёт фронтенд и статику
-
-- применит миграции
-
-- перезапустит Gunicorn
+3. Установить конфиг
+```bash
+nano /etc/nginx/sites-available/star-burger.conf
+```
+4. Активировать конфиг:
+```bash
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo ln -sf /etc/nginx/sites-available/star-burger.conf /etc/nginx/sites-enabled/star-burger.conf
+sudo nginx -t && sudo systemctl enable --now nginx && sudo systemctl reload nginx
+```
+5. Первый запуск:
+```bash
+cd /opt/star-burger
+docker compose up -d --build
+docker compose exec -T backend python manage.py migrate --noinput
+docker compose exec -T backend python manage.py collectstatic --noinput
+```
+5. Дальнейшие выкаты (каждый раз при обновлении кода):
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
 
 ## Цели проекта
 
