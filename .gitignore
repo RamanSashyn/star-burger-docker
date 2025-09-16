@@ -1,4 +1,4 @@
-bundles/**
+frontend/bundles/**
 node_modules/
 media/
 
@@ -62,7 +62,7 @@ cover/
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3
+backend/db.sqlite3
 db.sqlite3-journal
 
 # Flask stuff:
@@ -109,7 +109,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-star_burger/.env
+backend/star_burger/.env
 .venv
 env/
 venv/

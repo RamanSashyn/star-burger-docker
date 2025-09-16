@@ -10,7 +10,7 @@ env = Env()
 env.read_env()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, '../../staticfiles')
 
 
 SECRET_KEY = env.str('SECRET_KEY', default='dev-secret-key')
@@ -19,8 +19,8 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if os.getenv("CSRF_TRUSTED_ORIGINS") else []
 
 INSTALLED_APPS = [
-    'foodcartapp.apps.FoodcartappConfig',
-    'restaurateur.apps.RestaurateurConfig',
+    'backend.foodcartapp.apps.FoodcartappConfig',
+    'backend.restaurateur.apps.RestaurateurConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'phonenumber_field',
     'rest_framework',
-    'places'
+    'backend.places'
 ]
 
 ROLLBAR = {
@@ -51,7 +51,7 @@ MIDDLEWARE = [
     'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
 ]
 
-ROOT_URLCONF = 'star_burger.urls'
+ROOT_URLCONF = 'backend.star_burger.urls'
 
 DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.versions.VersionsPanel',
@@ -72,7 +72,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, "templates"),
+            os.path.join(BASE_DIR, "../../templates"),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -90,7 +90,7 @@ WSGI_APPLICATION = 'star_burger.wsgi.application'
 YANDEX_GEOCODER_API_KEY = os.getenv('YANDEX_GEOCODER_API_KEY')
 
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, '../../media')
 MEDIA_URL = '/media/'
 
 DATABASES = {
@@ -130,6 +130,6 @@ INTERNAL_IPS = [
 
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "assets"),
-    os.path.join(BASE_DIR, "bundles"),
+    os.path.join(BASE_DIR, "backend/../frontend/../../frontend/assets"),
+    os.path.join(BASE_DIR, "frontend/../../frontend/bundles"),
 ]

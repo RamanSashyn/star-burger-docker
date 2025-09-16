@@ -3,14 +3,13 @@ from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
-from django.db.models import Sum, F
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
 
 from foodcartapp.utils import fetch_coordinates, get_distance_km
 from foodcartapp.models import Product, Restaurant, Order, OrderItem, RestaurantMenuItem
-from places.models import Place
+from backend.places.models import Place
 
 
 class Login(forms.Form):
@@ -33,7 +32,7 @@ class Login(forms.Form):
 class LoginView(View):
     def get(self, request, *args, **kwargs):
         form = Login()
-        return render(request, "login.html", context={
+        return render(request, "templates/login.html", context={
             'form': form
         })
 
@@ -51,7 +50,7 @@ class LoginView(View):
                     return redirect("restaurateur:RestaurantView")
                 return redirect("start_page")
 
-        return render(request, "login.html", context={
+        return render(request, "templates/login.html", context={
             'form': form,
             'ivalid': True,
         })
@@ -79,7 +78,7 @@ def view_products(request):
             (product, ordered_availability)
         )
 
-    return render(request, template_name="products_list.html", context={
+    return render(request, template_name="templates/products_list.html", context={
         'products_with_restaurant_availability': products_with_restaurant_availability,
         'restaurants': restaurants,
     })
@@ -87,7 +86,7 @@ def view_products(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_restaurants(request):
-    return render(request, template_name="restaurants_list.html", context={
+    return render(request, template_name="templates/restaurants_list.html", context={
         'restaurants': Restaurant.objects.all(),
     })
 
@@ -167,6 +166,6 @@ def view_orders(request):
             'restaurants': restaurant_text,
         })
 
-    return render(request, template_name='order_items.html', context={
+    return render(request, template_name='templates/order_items.html', context={
         'order_items': order_items,
     })

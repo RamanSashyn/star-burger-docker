@@ -1,7 +1,7 @@
 import requests
 from geopy.distance import distance as geopy_distance
 from django.conf import settings
-from places.models import Place
+from backend.places.models import Place
 
 def fetch_coordinates(address):
     place, created = Place.objects.get_or_create(address=address)

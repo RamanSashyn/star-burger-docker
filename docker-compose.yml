@@ -1,23 +1,23 @@
 services:
   backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: docker/Dockerfile.backend
-    env_file: .env
+    env_file: ./backend/.env
     environment:
       STATIC_ROOT: /app/staticfiles
       MEDIA_ROOT: /app/media
     volumes:
       - ./media:/app/media
       - ./staticfiles:/app/staticfiles
-      - ./db.sqlite3:/app/db.sqlite3
+      - ./backend/db.sqlite3:/app/db.sqlite3
     ports:
       - "127.0.0.1:8001:8000"
     restart: unless-stopped
 
   frontend:
     build:
-      context: .
+      context: ./frontend
       dockerfile: docker/Dockerfile.frontend
     depends_on:
       - backend
